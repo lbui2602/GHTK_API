@@ -7,15 +7,17 @@ import androidx.lifecycle.viewModelScope
 import com.example.ghtk_api.repository.PokemonRepository
 import com.example.ghtk_api.models.PokemonResponse
 import com.example.ghtk_api.models.Result
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class PokemonViewModel : ViewModel() {
-    private val repository = PokemonRepository()
+@HiltViewModel
+class PokemonViewModel @Inject constructor(
+    private val repository: PokemonRepository
+) : ViewModel() {
+
     private val _pokemonList = MutableLiveData<List<Result>?>()
     val pokemonList: MutableLiveData<List<Result>?> get() = _pokemonList
-
-    private val _pokemonListLoadMore = MutableLiveData<List<Result>?>()
-    val pokemonListLoadMore: MutableLiveData<List<Result>?> get() = _pokemonListLoadMore
 
     private var currentOffset = 20
     private val pageSize = 20
@@ -23,10 +25,11 @@ class PokemonViewModel : ViewModel() {
 
     fun fetchData() {
         viewModelScope.launch {
-            val response = repository.getPokemonList(0,20)
+            val response = repository.getPokemonList(0, 20)
             _pokemonList.postValue(response?.results)
         }
     }
+
     fun loadMoreData() {
         if (isLoading) return  // Prevent multiple simultaneous requests
         isLoading = true
@@ -39,12 +42,10 @@ class PokemonViewModel : ViewModel() {
                     currentOffset += pageSize
                 }
             } catch (e: Exception) {
-
+                // Handle error
             } finally {
                 isLoading = false
             }
         }
     }
-
 }
-
