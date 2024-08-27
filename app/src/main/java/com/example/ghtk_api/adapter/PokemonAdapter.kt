@@ -10,7 +10,7 @@ import com.example.ghtk_api.models.Result
 import kotlin.random.Random
 
 class PokemonAdapter(
-    private val pokemonList: MutableList<Result>
+    private var pokemonList: MutableList<Result>
 ) : RecyclerView.Adapter<PokemonAdapter.PokemonViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PokemonViewHolder {
@@ -27,6 +27,10 @@ class PokemonAdapter(
     fun addPokemons(newPokemons: List<Result>) {
         pokemonList.addAll(newPokemons)
         notifyItemRangeInserted(pokemonList.size - newPokemons.size, newPokemons.size)
+    }
+    fun updateList(newPokemons: List<Result>) {
+        pokemonList = newPokemons.toMutableList()
+        notifyDataSetChanged()
     }
 
     inner class PokemonViewHolder(private val binding: PokemonItemBinding) : RecyclerView.ViewHolder(binding.root) {

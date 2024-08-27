@@ -4,12 +4,19 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ghtk_api.adapter.PokemonAdapter
 import com.example.ghtk_api.databinding.ActivityMainBinding
+import com.example.ghtk_api.db.PokemonDao
+import com.example.ghtk_api.db.PokemonDatabase
 import com.example.ghtk_api.viewmodels.PokemonViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -32,14 +39,35 @@ class MainActivity : AppCompatActivity() {
         binding.rcv.adapter = adapter
 
         viewModel.fetchData()
-
+        Log.e("TAG", viewModel.pokemonList.value.toString())
+        val pokemonDao: PokemonDao = PokemonDatabase.getDatabase(this).pokemonDao()
         viewModel.pokemonList.observe(this) { pokemons ->
             if (pokemons != null) {
-                adapter.addPokemons(pokemons)
-                Log.e("TAG", "true")
+                lifecycleScope.launch(Dispatchers.IO) {
+                    if (pokemonDao.getAllPokemon().isEmpty()) {
+                        pokemonDao.insertAll(pokemons)
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        adapter.addPokemons(pokemons)
+                    }
+                }
             }
-            Log.e("TAG", pokemons?.size.toString())
         }
+
+        viewModel.isConnected.observe(this) { isConnected ->
+            if (isConnected) {
+                // Có thể load dữ liệu từ API
+            } else {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val localPokemons = pokemonDao.getAllPokemon()
+                    withContext(Dispatchers.Main) {
+                        adapter.updateList(localPokemons)
+                    }
+                }
+            }
+        }
+
 
         binding.rcv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
