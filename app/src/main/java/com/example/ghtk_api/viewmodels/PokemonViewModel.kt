@@ -25,8 +25,8 @@ class PokemonViewModel @Inject constructor(
     private val _isConnected = NetworkStatusLiveData(application)
     val isConnected: LiveData<Boolean> get() = _isConnected
 
-    private var currentOffset = 20
-    private val pageSize = 20
+    var currentOffset = 20
+    val pageSize = 20
     private var isLoading = false
 
     init {

@@ -58,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.isConnected.observe(this) { isConnected ->
             if (isConnected) {
                 // Có thể load dữ liệu từ API
+                viewModel.currentOffset = 20
             } else {
                 lifecycleScope.launch(Dispatchers.IO) {
                     val localPokemons = pokemonDao.getAllPokemon()
